@@ -1,0 +1,55 @@
+name: Build Shaheen Linux ISO
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install live-build
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y live-build
+
+      - name: Configure and Customize
+        run: |
+          mkdir -p config/package-lists
+          echo "xfce4 lightdm lightdm-gtk-greeter network-manager sudo nano nmap python3" > config/package-lists/desktop.list.chroot
+          
+          mkdir -p config/includes.chroot/usr/share/backgrounds
+          cp shaheen.png config/includes.chroot/usr/share/backgrounds/
+          
+          mkdir -p config/hooks/live
+          cat > config/hooks/live/01-shaheen-branding.hook.chroot << 'HOOK'
+          #!/bin/sh
+          set -e
+          echo "shaheen" > /etc/hostname
+          cat << 'MOTD' > /etc/motd
+                              |
+          ____________    __ -+-  ____________
+          \_____     /   /_ \ |   \     _____/
+           \_____    \____/  \____/    _____/
+            \_____                    _____/
+               \___________  ___________/
+                         /____\
+          MOTD
+          HOOK
+          chmod +x config/hooks/live/01-shaheen-branding.hook.chroot
+          
+          lb config --distribution bookworm --archive-areas "main contrib non-free" --binary-images iso-hybrid
+
+      - name: Build the ISO
+        run: |
+          sudo lb build
+
+      - name: Upload ISO File
+        uses: actions/upload-artifact@v4
+        with:
+          name: Shaheen-Linux-ISO
+          path: "*.iso"
