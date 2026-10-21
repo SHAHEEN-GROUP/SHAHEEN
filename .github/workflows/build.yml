@@ -19,12 +19,10 @@ jobs:
 
       - name: Configure and Customize
         run: |
-          # تنظيف أي بقايا من محاولات سابقة
           sudo lb clean --purge || true
           rm -rf config
 
           mkdir -p config/package-lists
-          # إضافة linux-image-generic لضمان وجود النواة
           echo "xfce4 lightdm lightdm-gtk-greeter network-manager sudo nano nmap python3 linux-image-generic" > config/package-lists/desktop.list.chroot
           
           mkdir -p config/includes.chroot/usr/share/backgrounds
@@ -47,7 +45,8 @@ jobs:
           HOOK
           chmod +x config/hooks/live/01-shaheen-branding.hook.chroot
           
-          lb config --distribution jammy --archive-areas "main restricted universe multiverse" --binary-images iso-hybrid
+          # إضافة --memtest none لتجاوز مشكلة memtest86+
+          lb config --distribution jammy --archive-areas "main restricted universe multiverse" --binary-images iso-hybrid --memtest none
 
       - name: Patch live-build start-stop-daemon bug
         run: |
