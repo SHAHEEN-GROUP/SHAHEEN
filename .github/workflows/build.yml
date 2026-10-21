@@ -44,6 +44,10 @@ jobs:
           
           lb config --distribution jammy --archive-areas "main restricted universe multiverse" --binary-images iso-hybrid
 
+      - name: Patch live-build start-stop-daemon bug
+        run: |
+          sudo sed -i '/# begin-remove-after: released:forky/,/# end-remove-after/d' /usr/lib/live/build/lb_chroot_dpkg
+
       - name: Build the ISO
         run: |
           sudo lb build
